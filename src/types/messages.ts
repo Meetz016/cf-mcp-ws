@@ -1,0 +1,25 @@
+export interface IClientMessage {
+    type: string;
+    payload: any;
+    timestamp: number;
+}
+
+export interface IServerMessage {
+    type: string;
+    payload: any;
+    timestamp: number;
+    sender?: string;
+}
+
+export interface IWebSocketConnection {
+    id: string;
+    socket: WebSocket;
+    timestamp: number;
+}
+
+export interface IConnectionRegistry {
+    connections: Map<string, IWebSocketConnection>;
+    add(connection: IWebSocketConnection): void;
+    remove(id: string): void;
+    broadcast(message: IServerMessage): void;
+} 

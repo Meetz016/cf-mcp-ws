@@ -1,0 +1,25 @@
+{
+  "name": "cloudflare-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server using Cloudflare Workers",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "npx tsc -b",
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gitignore": "^0.7.0",
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240320.1",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.8.2",
+    "wrangler": "^3.37.0"
+  }
+}

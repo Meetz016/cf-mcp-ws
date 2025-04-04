@@ -1,0 +1,77 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## 🔄 Project Awareness & Context
+- **Always read `PLANNING.md`** at the start of a new conversation to understand the project’s architecture, goals, event flow, and constraints.
+- **Check `TASK.md`** before starting a new task. If the task isn’t listed, add it with a brief description and today’s date.
+- **Follow naming conventions, folder structure, and architectural patterns** defined in `PLANNING.md`.
+
+## 📁 Project Structure
+- All source files must live inside the `/src` directory.
+- Output from `npx tsc -b` must go to the `/dist` directory (ensure `tsconfig.json` or `tsconfig.build.json` is configured accordingly).
+- Common folders under `/src`:
+  - `/src/handlers` – request or event handlers
+  - `/src/utils` – reusable helper functions
+  - `/src/types` – TypeScript interfaces and types
+  - `/src/events` – event-driven or WebSocket-based logic
+  - `/src/constants` – shared values, config
+  - `/src/lib` – third-party integrations, e.g., CF Workers APIs
+
+## 🧱 Code Structure & Modularity
+- **Never create a file longer than 500 lines.** Split logic into smaller modules or utility files.
+- **Structure code by responsibility** – e.g., `handlers/`, `utils/`, `types/`, `events/`, etc.
+- Prefer **named exports**, and **avoid default exports** for clarity and consistency.
+- Use **ES Modules** and **strict TypeScript (`strict: true`) settings** in `tsconfig.json`.
+
+## 🌐 Cloudflare-Specific Rules
+- Use the **`Hono` framework** for HTTP routing and middleware (if applicable).
+- Use the **`DurableObject` pattern** for managing WebSocket sessions and state across connections.
+- Use **`kv` or `r2`** only for external persistence or blob storage as needed.
+- **Always handle `OPTIONS` and preflight requests** in endpoints.
+
+## 🧪 Testing & Reliability
+- Write **unit tests using `vitest` or `jest`**.
+- For WebSocket logic, include:
+  - 1 test for normal message flow
+  - 1 edge case (e.g. client disconnects early)
+  - 1 failure case (e.g. malformed message)
+- Mock Cloudflare environments (e.g., `env.KV`, `env.SOCKET_MANAGER`) when needed.
+- Keep tests in `/tests`, mirroring the source folder structure.
+
+## ✅ Task Completion
+- **Mark completed tasks in `TASK.md`** immediately after finishing them.
+- Log sub-tasks or TODOs discovered during development under a “Discovered During Work” section in `TASK.md`.
+
+## 📎 Style & Conventions
+- **Use TypeScript with strict types.**
+- Follow **ESLint rules**.
+- Format with `prettier` (configured for 2 spaces, single quotes, trailing commas).
+- Use `zod` or TypeScript interfaces for payload validation.
+- **Use JSDoc-style comments** for all exported functions:
+  ```ts
+  /**
+   * Broadcasts a message to all clients.
+   *
+   * @param clients - Connected WebSocket clients.
+   * @param message - The message to send.
+   */
+- Avoid `any`; always infer or define types.
+
+## 📚 Documentation & Explainability
+- Update `README.md` if:
+  - New environment variables are added.
+  - Setup steps or CLI commands change.
+  - A new major feature is introduced.
+- Add inline comments for logic that’s non-obvious or uses Cloudflare-specific APIs.
+- Use `// Reason:` comments where you make a choice that’s not obvious.
+
+## 🧠 AI Behavior Rules
+- **Do not guess or assume unknown project context. Ask questions if needed.**
+- **Don’t invent Cloudflare API features.** Stick to verified docs: https://developers.cloudflare.com/workers/
+- **Confirm file/module paths** before referencing or modifying them.
+- **Don’t overwrite or delete code** unless it’s part of a listed task or explicitly instructed.
+```
+
+---
