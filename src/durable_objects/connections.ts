@@ -1,12 +1,14 @@
-import { IServerMessage } from '../types/messages';
+import { IResponseMessage, IServerMessage } from '../types/messages';
 
 export class MCPConnectionsDO implements DurableObject {
     state: DurableObjectState;
+    private topics: Map<string, Set<WebSocket>>;
     private clients: Map<WebSocket, string>;
 
     constructor(state: DurableObjectState) {
         this.state = state;
         this.clients = new Map();
+        this.topics = new Map();
     }
 
     async fetch(request: Request): Promise<Response> {
@@ -40,23 +42,92 @@ export class MCPConnectionsDO implements DurableObject {
             payload: { message: 'Connected to server' },
             timestamp: Date.now()
         }));
-        console.log('Client connected:', clientId);
 
         // Set up message handler
         server.addEventListener("message", (event) => {
-            const message = event.data;
-            console.log("Received:", message);
-
-            // Broadcast the message to all connected clients
-            for (const [ws, _] of this.clients) {
-                if (ws != server && ws.readyState === WebSocket.OPEN) {
-                    ws.send(message);
+            try {
+                const message = event.data;
+                const parsedMessage: IServerMessage = JSON.parse(message.toString());
+                if (parsedMessage.type === "publisher") {
+                    console.log("publisher", typeof parsedMessage.isNewStock);
+                    if (parsedMessage.isNewStock) {
+                        console.log("new stock", parsedMessage);
+                        const stock = parsedMessage.payload.stock;
+                        const message: IResponseMessage = {
+                            payload: {
+                                stock
+                            },
+                            message: `Publisher ${clientId} added a new stock: ${stock}`,
+                            timestamp: Date.now()
+                        }
+                        this.topics.set(stock, new Set<WebSocket>());
+                        server.send(JSON.stringify(message));
+                    } else {
+                        const stock = parsedMessage.payload.stock;
+                        const subscribers = this.topics.get(stock);
+                        console.log("subscribers", subscribers);
+                        if (parsedMessage.payload.price) {
+                            const message: IResponseMessage = {
+                                payload: {
+                                    stock,
+                                    price: parsedMessage.payload.price
+                                },
+                                message: "UPDATE !!!",
+                                timestamp: Date.now()
+                            }
+                            if (subscribers) {
+                                subscribers.forEach(subscriber => {
+                                    if (subscriber.readyState === WebSocket.OPEN) {
+                                        subscriber.send(JSON.stringify(message));
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } else if (parsedMessage.type === "subscriber") {
+                    const stock = parsedMessage.payload?.stock;
+                    if (stock) {
+                        if (!this.topics.has(stock)) {
+                            const message: IResponseMessage = {
+                                payload: {
+                                    stock
+                                },
+                                message: `Stock ${stock} not listed by publisher`,
+                                timestamp: Date.now()
+                            }
+                            server.send(JSON.stringify(message));
+                            return;
+                        }
+                        this.topics.get(stock)?.add(server);
+                        console.log(`Subscriber ${clientId} subscribed to ${stock}`);
+                        server.send(JSON.stringify({
+                            type: 'success',
+                            payload: { message: `Subscribed to the stock: ${stock}` },
+                            timestamp: Date.now()
+                        }));
+                    }
                 }
+
+            } catch (error) {
+                console.error('Error processing message:', error);
+                server.send(JSON.stringify({
+                    type: 'error',
+                    payload: { message: 'Invalid message format' },
+                    timestamp: Date.now()
+                }));
             }
         });
 
         server.addEventListener("close", () => {
+            // Remove from all topics
+            this.topics.forEach((subscribers, topic) => {
+                subscribers.delete(server);
+                if (subscribers.size === 0) {
+                    this.topics.delete(topic);
+                }
+            });
             this.clients.delete(server);
+            console.log(`Client ${clientId} disconnected`);
         });
 
         return new Response(null, { status: 101, webSocket: client });

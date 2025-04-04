@@ -5,10 +5,22 @@ export interface IClientMessage {
 }
 
 export interface IServerMessage {
-    type: string;
-    payload: any;
+    type: 'subscriber' | 'unsubscribe' | 'message' | 'publisher';
+    topic?: string;
+    isNewStock?: boolean;
+    payload: {
+        stock: string;
+        price?: number;
+    };
+}
+
+export interface IResponseMessage {
+    payload: {
+        stock: string,
+        price?: number
+    };
+    message: string;
     timestamp: number;
-    sender?: string;
 }
 
 export interface IWebSocketConnection {
