@@ -49,9 +49,7 @@ export class MCPConnectionsDO implements DurableObject {
                 const message = event.data;
                 const parsedMessage: IServerMessage = JSON.parse(message.toString());
                 if (parsedMessage.type === "publisher") {
-                    console.log("publisher", typeof parsedMessage.isNewStock);
                     if (parsedMessage.isNewStock) {
-                        console.log("new stock", parsedMessage);
                         const stock = parsedMessage.payload.stock;
                         const message: IResponseMessage = {
                             payload: {
@@ -60,10 +58,23 @@ export class MCPConnectionsDO implements DurableObject {
                             message: `Publisher ${clientId} added a new stock: ${stock}`,
                             timestamp: Date.now()
                         }
-                        this.topics.set(stock, new Set<WebSocket>());
+                        console.log(`${stock.toLocaleLowerCase()} added to topic list by publisher ${clientId}`);
+                        this.topics.set(stock.toLocaleLowerCase(), new Set<WebSocket>());
                         server.send(JSON.stringify(message));
+                        return;
                     } else {
-                        const stock = parsedMessage.payload.stock;
+                        const stock = parsedMessage.payload.stock.toLowerCase();
+                        if (!this.topics.get(stock)) {
+                            const message: IResponseMessage = {
+                                payload: {
+                                    stock
+                                },
+                                message: `Stock ${stock} Does not exist in topic list.`,
+                                timestamp: Date.now()
+                            }
+                            server.send(JSON.stringify(message));
+                            return;
+                        }
                         const subscribers = this.topics.get(stock);
                         console.log("subscribers", subscribers);
                         if (parsedMessage.payload.price) {
@@ -85,7 +96,8 @@ export class MCPConnectionsDO implements DurableObject {
                         }
                     }
                 } else if (parsedMessage.type === "subscriber") {
-                    const stock = parsedMessage.payload?.stock;
+                    console.log("subscriber", parsedMessage);
+                    const stock = parsedMessage.payload?.stock.toLocaleLowerCase();
                     if (stock) {
                         if (!this.topics.has(stock)) {
                             const message: IResponseMessage = {
