@@ -13,3 +13,8 @@ bindings = [
 [[migrations]]
 tag = "v1"
 new_classes = ["MCPConnectionsDO"] 
+
+[[d1_databases]]
+binding = "DB" # available in your Worker on env.DB
+database_name = "stock-db"
+database_id = "43ecab0b-d937-4395-b6cb-383ff59d9aff"

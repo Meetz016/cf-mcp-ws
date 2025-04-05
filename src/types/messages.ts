@@ -7,17 +7,18 @@ export interface IClientMessage {
 export interface IServerMessage {
     type: 'subscriber' | 'unsubscribe' | 'message' | 'publisher';
     topic?: string;
+    id?: string;
     isNewStock?: boolean;
     payload: {
         stock: string;
-        price?: number;
+        price?: string;
     };
 }
 
 export interface IResponseMessage {
     payload: {
         stock: string,
-        price?: number
+        price?: string
     };
     message: string;
     timestamp: number;

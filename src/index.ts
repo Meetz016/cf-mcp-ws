@@ -1,9 +1,8 @@
 import { Hono } from 'hono';
 import { MCPConnectionsDO } from './durable_objects/connections';
+import { Env } from './types/env';
 
-interface Env {
-    CONNECTIONS: DurableObjectNamespace;
-}
+
 
 const app = new Hono<{ Bindings: Env }>();
 

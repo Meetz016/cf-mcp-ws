@@ -1,14 +1,18 @@
+import { publish } from '@/repository/publisher/publisher.repository';
 import { IResponseMessage, IServerMessage } from '../types/messages';
-
+import { Env } from '../types/env';
+import { IPublisherRepository } from '@/types/publisher.repository.types';
 export class MCPConnectionsDO implements DurableObject {
     state: DurableObjectState;
+    env: Env;
     private topics: Map<string, Set<WebSocket>>;
     private clients: Map<WebSocket, string>;
 
-    constructor(state: DurableObjectState) {
+    constructor(state: DurableObjectState, env: Env) {
         this.state = state;
         this.clients = new Map();
         this.topics = new Map();
+        this.env = env;
     }
 
     async fetch(request: Request): Promise<Response> {
@@ -18,7 +22,6 @@ export class MCPConnectionsDO implements DurableObject {
         if (request.headers.get('Upgrade') === 'websocket') {
             return this.handleWebSocket(request);
         }
-
         // Handle broadcast request
         if (url.pathname === '/broadcast' && request.method === 'POST') {
             return this.handleBroadcast(request);
@@ -44,21 +47,22 @@ export class MCPConnectionsDO implements DurableObject {
         }));
 
         // Set up message handler
-        server.addEventListener("message", (event) => {
+        server.addEventListener("message", async (event) => {
             try {
                 const message = event.data;
                 const parsedMessage: IServerMessage = JSON.parse(message.toString());
                 if (parsedMessage.type === "publisher") {
-                    if (parsedMessage.isNewStock) {
+                    if (parsedMessage.isNewStock && parsedMessage.id && parsedMessage.payload.price) {
+                        const publisherId: string = parsedMessage.id;
                         const stock = parsedMessage.payload.stock;
-                        const message: IResponseMessage = {
-                            payload: {
-                                stock
-                            },
-                            message: `Publisher ${clientId} added a new stock: ${stock}`,
-                            timestamp: Date.now()
+                        const stockDetails: IPublisherRepository = {
+                            publisher_id: publisherId,
+                            stock_name: stock,
+                            stock_symbol: parsedMessage.payload.stock.slice(0, 3),
+                            stock_price: parsedMessage.payload.price
                         }
-                        console.log(`${stock.toLocaleLowerCase()} added to topic list by publisher ${clientId}`);
+                        const message = await publish(this.env, stockDetails);
+                        console.log(`${stock.toLocaleLowerCase()} added to topic list by publisher ${message.data.publisher_id}`);
                         this.topics.set(stock.toLocaleLowerCase(), new Set<WebSocket>());
                         server.send(JSON.stringify(message));
                         return;
