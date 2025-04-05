@@ -5,7 +5,7 @@ export interface IClientMessage {
 }
 
 export interface IServerMessage {
-    type: 'subscriber' | 'unsubscribe' | 'message' | 'publisher';
+    type: 'subscriber' | 'unsubscribe' | 'publisher';
     topic?: string;
     id?: string;
     isNewStock?: boolean;
