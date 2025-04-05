@@ -2,26 +2,29 @@ import { Env } from "@/types/env";
 import { IRepositoryResponse } from "@/types/response/repository.response";
 
 export async function searchStock(env: Env, stock_name: string): Promise<IRepositoryResponse> {
+    console.log("Looking for stock:", stock_name);
     try {
-        console.log(stock_name);
-        //check if stock exists
-        const stock = await env.DB.prepare("SELECT * FROM stock WHERE stock_name = ?")
-            .bind(stock_name.toUpperCase())
+        // Case-insensitive search using UPPER function on both sides
+        const stock = await env.DB.prepare("SELECT * FROM stock WHERE UPPER(stock_name) = UPPER(?)")
+            .bind(stock_name)
             .all();
-        console.log(stock);
+
+        console.log("Stock search results:", stock.results.length > 0 ? stock.results[0] : "No results");
+
         if (stock.results.length === 0) {
             return {
                 success: false,
-                message: "Stock not found.",
+                message: `Stock "${stock_name}" not found.`,
             }
         }
+
         return {
             success: true,
             message: "Stock found",
             data: stock.results[0]
         }
     } catch (error: any) {
-        console.error(error);
+        console.error("Error in searchStock:", error);
         return {
             success: false,
             message: "An error occurred while searching for stock.",
