@@ -34,3 +34,25 @@ export async function searchStock(env: Env, stock_name: string): Promise<IReposi
         };
     }
 }
+
+
+export async function getAllStocks(env: Env): Promise<IRepositoryResponse> {
+    try {
+        //just select stock_name,stock_id,stock_price
+        const stocks = await env.DB.prepare("SELECT stock_name,stock_id,stock_price,stock_symbol FROM stock").bind().all();
+        return {
+            success: true,
+            message: "All stocks retrieved successfully",
+            data: stocks.results
+        };
+    } catch (error: any) {
+        console.error("Error in getAllStocks:", error);
+        return {
+            success: false,
+            message: "An error occurred while retrieving all stocks.",
+            data: {
+                error: error.message || String(error),
+            },
+        };
+    }
+}

@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { MCPConnectionsDO } from './durable_objects/connections';
 import { Env } from './types/env';
+import { getAllStocks } from './repository/stock/stock.repository';
 
 
 
@@ -13,6 +14,11 @@ app.get('/', (c) => {
         status: 'ok',
         message: 'MCP Server is running'
     });
+});
+
+app.get("/stocks", async (c) => {
+    const stocks = await getAllStocks(c.env);
+    return c.json(stocks);
 });
 
 // WebSocket connection endpoint
