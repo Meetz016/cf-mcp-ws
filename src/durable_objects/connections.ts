@@ -178,6 +178,7 @@ export class MCPConnectionsDO implements DurableObject {
 
             // Broadcast the stock update to all subscribers
             const updateMessage: IResponseMessage = {
+                type: 'stock-update',
                 payload: {
                     stock: stockName,
                     price: message.payload.price

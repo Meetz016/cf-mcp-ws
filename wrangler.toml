@@ -18,3 +18,17 @@ new_classes = ["MCPConnectionsDO"]
 binding = "DB" # available in your Worker on env.DB
 database_name = "stock-db"
 database_id = "43ecab0b-d937-4395-b6cb-383ff59d9aff"
+
+[vars]
+AUTH_SECRET="SoOEwkcnPnycLH58lvPAc3zzrwQx9mxSNMFHtUh+b+Y="
+AUTH_TRUST_HOST="true"
+GOOGLE_ID="140929688838-pcsotshm1tf33i4qijlsdonp4vm9c198.apps.googleusercontent.com"
+GOOGLE_SECRET="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"
+JWT_SECRET="MEET_SECRET"
+
+[observability]
+enabled = true
+
+
+
+

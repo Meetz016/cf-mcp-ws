@@ -5,7 +5,7 @@ export interface IClientMessage {
 }
 
 export interface IServerMessage {
-    type: 'subscriber' | 'unsubscribe' | 'publisher';
+    type: 'subscriber' | 'unsubscribe' | 'publisher' | 'stock-update';
     topic?: string;
     id?: string;
     isNewStock?: boolean;
@@ -16,6 +16,7 @@ export interface IServerMessage {
 }
 
 export interface IResponseMessage {
+    type?: 'stock-update'
     payload: {
         stock: string,
         price?: string
