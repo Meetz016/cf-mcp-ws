@@ -1,4 +1,4 @@
-import { addStock, searchStock } from "@/repository/stock/stock.repository";
+import { addStock, get, searchStock } from "@/repository/stock/stock.repository";
 import { Env } from "@/types/env";
 import { IPublisherPayload } from "@/types/publisher";
 
@@ -30,3 +30,16 @@ export async function addStockService(env: Env, publisherPayload: IPublisherPayl
         return null;
     }
 }
+
+
+export async function getStockService(env: Env) {
+    const stocks = await get(env);
+    if (stocks.success) {
+        return stocks;
+    }
+    return {
+        status: 'error getting stocks',
+        message: 'somthing went wrong'
+    }
+}
+

@@ -1,12 +1,11 @@
 import { Hono } from 'hono';
 import { MCPConnectionsDO } from './durable_objects/connections';
 import { Env } from './types/env';
-import { getAllStocks } from './repository/stock/stock.repository';
 import { cors } from 'hono/cors';
 import { User } from './types/user';
 import { getToken } from './services/user/user.services';
 import { IPublisherPayload } from './types/publisher';
-import { addStockService } from './services/stock/stock.service';
+import { addStockService, getStockService } from './services/stock/stock.service';
 
 
 const app = new Hono<{ Bindings: Env }>();
@@ -27,7 +26,7 @@ app.get('/', (c) => {
 });
 
 
-app.get("/publish", async (c) => {
+app.post("/publish", async (c) => {
     const payload: IPublisherPayload = await c.req.json();
     const publisher = await addStockService(c.env, payload);
     console.log("publisher response", publisher)
@@ -39,7 +38,8 @@ app.get("/publish", async (c) => {
 });
 
 app.get("/stocks", async (c) => {
-    const stocks = await getAllStocks(c.env);
+    const stocks = await getStockService(c.env);
+    console.log("stocks", stocks)
     return c.json(stocks);
 });
 app.get('/auth/callback', async (c) => {

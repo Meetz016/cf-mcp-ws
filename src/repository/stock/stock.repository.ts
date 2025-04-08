@@ -22,10 +22,10 @@ export async function addStock(env: Env, publisherPayload: IPublisherPayload) {
 }
 
 
-export async function getAllStocks(env: Env): Promise<IRepositoryResponse> {
+export async function get(env: Env): Promise<IRepositoryResponse> {
     try {
-        //just select stock_name,stock_id,stock_price
-        const stocks = await env.DB.prepare("SELECT stock_name,stock_id,stock_price,stock_symbol FROM stock").bind().all();
+
+        const stocks = await env.DB.prepare("SELECT stock_id,stock_name,stock_price FROM stocks").bind().all();
         return {
             success: true,
             message: "All stocks retrieved successfully",
