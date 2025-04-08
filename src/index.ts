@@ -6,6 +6,7 @@ import { cors } from 'hono/cors';
 import { User } from './types/user';
 import { getToken } from './services/user/user.services';
 import { IPublisherPayload } from './types/publisher';
+import { addStock } from './services/stock/stock.service';
 
 
 const app = new Hono<{ Bindings: Env }>();
@@ -28,7 +29,10 @@ app.get('/', (c) => {
 
 app.get("/publish", async (c) => {
     const payload: IPublisherPayload = await c.req.json();
+    const publisher = await addStock(c.env, payload);
+    console.log("publisher response", publisher)
     return c.json({
+        publisher,
         status: 'ok',
         message: 'Payload received'
     });
