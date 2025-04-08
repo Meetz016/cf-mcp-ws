@@ -3,7 +3,8 @@ import { MCPConnectionsDO } from './durable_objects/connections';
 import { Env } from './types/env';
 import { getAllStocks } from './repository/stock/stock.repository';
 import { cors } from 'hono/cors';
-import { sign } from 'hono/jwt';
+import { User } from './types/user';
+import { getToken } from './services/user/user.services';
 
 
 const app = new Hono<{ Bindings: Env }>();
@@ -57,16 +58,15 @@ app.get('/auth/callback', async (c) => {
         },
     })
 
-    const user = await userRes.json()
-
+    const user: User = await userRes.json()
+    console.log("user", user)
     if (user) {
-        const payload = {
-            id: (user as any).id,
-            email: (user as any).email
-        }
-        const token = await sign(payload, c.env.JWT_SECRET)
 
-        return c.json({ token }) // or redirect to frontend with token
+        console.log("payload is:", user.email)
+        const token = await getToken(c.env, user)
+        console.log("token:", token)
+
+        return Response.redirect(`http://localhost:5173/dashboard?token=${token}`, 302) // or redirect to frontend with token
     }
     return c.json({ error: 'Something went wrong' }, 400)
 })

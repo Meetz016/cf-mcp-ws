@@ -3,8 +3,6 @@ import { IResponseMessage, IServerMessage } from '../types/messages';
 import { Env } from '../types/env';
 import { IPublisherRepository } from '@/types/publisher.repository.types';
 import { searchStock } from '@/repository/stock/stock.repository';
-import { addSubscriber, searchSubscriber } from '@/repository/subscriber/subscriber.repository';
-import { addSubscription } from '@/repository/subscriptions/subscriptions.repository';
 
 export class MCPConnectionsDO implements DurableObject {
     state: DurableObjectState;
@@ -211,6 +209,7 @@ export class MCPConnectionsDO implements DurableObject {
      * Handle subscriber messages
      */
     private async handleSubscriberMessage(server: WebSocket, message: IServerMessage, clientId: string) {
+        console.log("clientId", clientId)
         console.log("Processing subscriber message:", message);
 
         // Validate subscriber ID
@@ -262,89 +261,9 @@ export class MCPConnectionsDO implements DurableObject {
 
         // Check if subscriber exists
         console.log(`Checking if subscriber exists: ${message.id}`);
-        const isSubscriberExists = await searchSubscriber(this.env, message.id);
 
-        if (!isSubscriberExists.success) {
-            console.log(`Subscriber ${message.id} not found, creating new subscriber`);
+        //TODO: Check if subscriber exists in database
 
-            // Create new subscriber
-            const newSubscriber = await addSubscriber(this.env);
-
-            if (newSubscriber.success) {
-                const subscriberId = newSubscriber.data.subscriber_id;
-                console.log(`Created new subscriber: ${subscriberId}`);
-
-                // Update message id with new subscriber id
-                message.id = subscriberId;
-
-                // Create subscription table entry
-                const subscription = await addSubscription(this.env, stockName, subscriberId);
-
-                if (subscription.success) {
-                    // Add to in-memory topics map
-                    this.topics.get(stockLower)?.add(server);
-                    console.log(`Subscriber ${clientId} subscribed to ${stockName}`);
-
-                    // Send confirmation message
-                    server.send(JSON.stringify({
-                        type: 'success',
-                        payload: {
-                            message: `Subscribed to the stock: ${stockName}`,
-                            subscriber_id: subscriberId
-                        },
-                        timestamp: Date.now()
-                    }));
-                } else {
-                    const errorMessage: IResponseMessage = {
-                        payload: {
-                            stock: stockName
-                        },
-                        message: subscription.message || "Failed to subscribe to stock",
-                        timestamp: Date.now()
-                    }
-                    server.send(JSON.stringify(errorMessage));
-                }
-            } else {
-                const errorMessage: IResponseMessage = {
-                    payload: {
-                        stock: stockName
-                    },
-                    message: "Failed to create subscriber",
-                    timestamp: Date.now()
-                }
-                server.send(JSON.stringify(errorMessage));
-            }
-        } else {
-            // Subscriber exists, create subscription
-            console.log(`Subscriber ${message.id} found, creating subscription to ${stockName}`);
-
-            const subscription = await addSubscription(this.env, stockName, message.id);
-
-            if (subscription.success) {
-                // Add to in-memory topics map
-                this.topics.get(stockLower)?.add(server);
-                console.log(`Existing subscriber ${message.id} subscribed to ${stockName}`);
-
-                // Send confirmation message
-                server.send(JSON.stringify({
-                    type: 'success',
-                    payload: {
-                        message: `Subscribed to the stock: ${stockName}`,
-                        stock_id: subscription.data.stock_id
-                    },
-                    timestamp: Date.now()
-                }));
-            } else {
-                const errorMessage: IResponseMessage = {
-                    payload: {
-                        stock: stockName
-                    },
-                    message: subscription.message || "Failed to subscribe to stock",
-                    timestamp: Date.now()
-                }
-                server.send(JSON.stringify(errorMessage));
-            }
-        }
     }
 
     /**

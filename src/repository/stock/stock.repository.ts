@@ -10,7 +10,6 @@ export async function searchStock(env: Env, stock_name: string): Promise<IReposi
             .all();
 
         console.log("Stock search results:", stock.results.length > 0 ? stock.results[0] : "No results");
-
         if (stock.results.length === 0) {
             return {
                 success: false,
