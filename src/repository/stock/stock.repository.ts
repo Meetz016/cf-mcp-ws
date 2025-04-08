@@ -1,37 +1,24 @@
 import { Env } from "@/types/env";
+import { IPublisherPayload } from "@/types/publisher";
 import { IRepositoryResponse } from "@/types/response/repository.response";
 
-export async function searchStock(env: Env, stock_name: string): Promise<IRepositoryResponse> {
-    console.log("Looking for stock:", stock_name);
-    try {
-        // Case-insensitive search using UPPER function on both sides
-        const stock = await env.DB.prepare("SELECT * FROM stock WHERE UPPER(stock_name) = UPPER(?)")
-            .bind(stock_name)
-            .all();
+export async function searchStock(env: Env, stock_name: string) {
+    const stock = await env.DB
+        .prepare("SELECT * FROM stocks WHERE LOWER(stock_name) = LOWER(?)")
+        .bind(stock_name)
+        .all();
+    return stock;
 
-        console.log("Stock search results:", stock.results.length > 0 ? stock.results[0] : "No results");
-        if (stock.results.length === 0) {
-            return {
-                success: false,
-                message: `Stock "${stock_name}" not found.`,
-            }
-        }
+}
 
-        return {
-            success: true,
-            message: "Stock found",
-            data: stock.results[0]
-        }
-    } catch (error: any) {
-        console.error("Error in searchStock:", error);
-        return {
-            success: false,
-            message: "An error occurred while searching for stock.",
-            data: {
-                error: error.message || String(error),
-            },
-        };
-    }
+export async function addStock(env: Env, publisherPayload: IPublisherPayload) {
+    //now add new stock to the db
+    const stock_id = crypto.randomUUID();
+    const current_timestamp = new Date().toISOString();
+    const res = await env.DB.prepare("INSERT INTO stocks (stock_id,stock_name, publisher_id, stock_price, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)")
+        .bind(stock_id, publisherPayload.stock_name, publisherPayload.id, publisherPayload.stock_price, current_timestamp, current_timestamp)
+        .run();
+    return { stock_id, res }
 }
 
 
