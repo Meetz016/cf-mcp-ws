@@ -5,6 +5,7 @@ import { getAllStocks } from './repository/stock/stock.repository';
 import { cors } from 'hono/cors';
 import { User } from './types/user';
 import { getToken } from './services/user/user.services';
+import { IPublisherPayload } from './types/publisher';
 
 
 const app = new Hono<{ Bindings: Env }>();
@@ -21,6 +22,15 @@ app.get('/', (c) => {
     return c.json({
         status: 'ok',
         message: 'MCP Server is running'
+    });
+});
+
+
+app.get("/publish", async (c) => {
+    const payload: IPublisherPayload = await c.req.json();
+    return c.json({
+        status: 'ok',
+        message: 'Payload received'
     });
 });
 
