@@ -19,7 +19,6 @@ export class MCPConnectionsDO implements DurableObject {
 
     async fetch(request: Request): Promise<Response> {
         const url = new URL(request.url);
-
         // Handle WebSocket upgrade
         if (request.headers.get('Upgrade') === 'websocket') {
             return this.handleWebSocket(request);
@@ -33,9 +32,7 @@ export class MCPConnectionsDO implements DurableObject {
     }
 
     private async handleWebSocket(request: Request): Promise<Response> {
-        if (request.headers.get('Upgrade') !== 'websocket') {
-            return new Response('Expected WebSocket', { status: 400 });
-        }
+        console.log("request", request) //to avoid unused variable warning
         const { 0: client, 1: server } = new WebSocketPair();
         server.accept();
         const clientId = crypto.randomUUID();
